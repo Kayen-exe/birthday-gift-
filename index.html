@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>For Gold — From Khush 🌌</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0812; --bg2: #110e1e; --card: #16122a; --card-hover: #1e1937;
+    --border: rgba(255,255,255,0.07); --border-hover: rgba(255,255,255,0.18);
+    --text: #f0eaf8; --muted: #8878aa; --accent: #c084fc; --accent2: #f472b6;
+    --gold: #fbbf24; --gold2: #f59e0b; --teal: #2dd4bf;
+    --glow: rgba(192,132,252,0.15); --gold-glow: rgba(251,191,36,0.12);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; padding-bottom: 100px; }
+  canvas#starfield { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+  /* DEV BANNER */
+  .dev-banner { position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: rgba(251,191,36,0.15); border-bottom: 1px solid rgba(251,191,36,0.3); padding: 6px 16px; text-align: center; font-size: 0.72rem; color: var(--gold); letter-spacing: 0.1em; display: none; }
+  .dev-banner.visible { display: block; }
+
+  /* HERO */
+  .hero { position: relative; z-index: 1; text-align: center; padding: 5rem 2rem 2rem; }
+  .hero-eyebrow { font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); margin-bottom: 1.2rem; opacity: 0; animation: fadeUp 0.8s 0.2s forwards; }
+  .hero-title { font-family: 'Playfair Display', serif; font-size: clamp(2.6rem, 7vw, 5rem); line-height: 1.1; color: var(--text); margin-bottom: 0.6rem; opacity: 0; animation: fadeUp 0.8s 0.4s forwards; }
+  .hero-title em { font-style: italic; background: linear-gradient(90deg, var(--gold), var(--accent2), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero-sub { font-size: 1rem; color: var(--muted); font-weight: 300; margin-bottom: 0.6rem; opacity: 0; animation: fadeUp 0.8s 0.6s forwards; }
+  .hero-sub2 { font-size: 0.82rem; color: var(--muted); font-style: italic; margin-bottom: 2.4rem; opacity: 0; animation: fadeUp 0.8s 0.7s forwards; }
+  .countdown-wrap { display: inline-flex; gap: 1rem; justify-content: center; margin-bottom: 1.5rem; opacity: 0; animation: fadeUp 0.8s 0.8s forwards; }
+  .cdown-box { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 0.9rem 1.4rem; min-width: 72px; }
+  .cdown-num { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 600; color: var(--gold); display: block; line-height: 1; }
+  .cdown-label { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-top: 4px; display: block; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* GRID */
+  .grid-section { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 0 1.5rem 3rem; }
+  .grid-label { font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.4rem; text-align: center; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
+
+  .day-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 1.6rem; cursor: pointer; transition: border-color 0.2s, background 0.2s, transform 0.2s, box-shadow 0.2s; position: relative; overflow: hidden; min-height: 220px; display: flex; flex-direction: column; gap: 10px; }
+  .day-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 30% 30%, var(--glow), transparent 70%); opacity: 0; transition: opacity 0.3s; }
+  .day-card:hover::before { opacity: 1; }
+  .day-card:hover { border-color: var(--border-hover); background: var(--card-hover); transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
+  .day-card.is-today { border-color: var(--teal); box-shadow: 0 0 0 1px var(--teal), 0 0 30px rgba(45,212,191,0.15); }
+  .day-card.is-birthday { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold), 0 0 40px rgba(251,191,36,0.2); background: linear-gradient(135deg, #16122a, #1c1520); }
+  .day-card.is-birthday::before { background: radial-gradient(circle at 30% 30%, var(--gold-glow), transparent 70%); }
+  .day-card.locked { cursor: default; opacity: 0.38; }
+  .day-card.locked:hover { transform: none; border-color: var(--border); background: var(--card); box-shadow: none; }
+  .day-card.locked:hover::before { opacity: 0; }
+
+  .card-date { font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+  .card-icon { font-size: 2.4rem; line-height: 1; margin: 4px 0; }
+  .card-title { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 600; line-height: 1.25; color: var(--text); }
+  .card-tagline { font-size: 0.8rem; color: var(--muted); line-height: 1.5; margin-top: 2px; }
+  .card-pills { display: flex; flex-wrap: wrap; gap: 5px; margin-top: auto; padding-top: 8px; }
+  .pill { font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 9px; border-radius: 100px; background: rgba(192,132,252,0.1); color: var(--accent); border: 1px solid rgba(192,132,252,0.2); }
+  .pill.gold { background: rgba(251,191,36,0.1); color: var(--gold); border-color: rgba(251,191,36,0.25); }
+  .pill.pink { background: rgba(244,114,182,0.1); color: var(--accent2); border-color: rgba(244,114,182,0.25); }
+  .pill.teal { background: rgba(45,212,191,0.1); color: var(--teal); border-color: rgba(45,212,191,0.25); }
+  .card-badge { position: absolute; top: 14px; right: 14px; font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 9px; border-radius: 100px; font-weight: 500; }
+  .badge-today { background: rgba(45,212,191,0.15); color: var(--teal); border: 1px solid rgba(45,212,191,0.3); }
+  .badge-bday { background: rgba(251,191,36,0.15); color: var(--gold); border: 1px solid rgba(251,191,36,0.3); }
+  .lock-icon { font-size: 1.6rem; margin: auto 0; color: var(--muted); }
+  .unlock-date { font-size: 0.75rem; color: var(--muted); margin-top: auto; }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; z-index: 200; background: rgba(4,3,10,0.92); backdrop-filter: blur(14px); align-items: center; justify-content: center; padding: 1.5rem; overflow-y: auto; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--bg2); border: 1px solid var(--border-hover); border-radius: 26px; max-width: 500px; width: 100%; padding: 2.2rem; position: relative; animation: modalIn 0.28s ease; margin: auto; }
+  .modal.birthday-modal { border-color: rgba(251,191,36,0.35); box-shadow: 0 0 80px rgba(251,191,36,0.12); }
+  @keyframes modalIn { from { opacity: 0; transform: scale(0.93) translateY(12px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+  .modal-close { position: absolute; top: 18px; right: 20px; background: none; border: none; color: var(--muted); font-size: 1.4rem; cursor: pointer; transition: color 0.15s; }
+  .modal-close:hover { color: var(--text); }
+  .modal-icon { font-size: 3.5rem; text-align: center; margin-bottom: 0.8rem; }
+  .modal-eyebrow { font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; text-align: center; }
+  .modal-title { font-family: 'Playfair Display', serif; font-size: 1.7rem; font-weight: 600; text-align: center; margin-bottom: 4px; color: var(--text); }
+  .modal-date { font-size: 0.8rem; color: var(--muted); text-align: center; margin-bottom: 1.4rem; }
+  .modal-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.4rem; }
+  .modal-section { margin-bottom: 1.5rem; }
+  .modal-section-title { font-size: 0.65rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.7rem; display: flex; align-items: center; gap: 6px; }
+  .modal-section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .modal-body { font-size: 0.95rem; line-height: 1.8; color: #c5b8e0; }
+  .modal-note { background: rgba(251,191,36,0.06); border: 1px solid rgba(251,191,36,0.18); border-radius: 14px; padding: 1.1rem 1.2rem; font-size: 0.88rem; color: #f0d98a; font-family: 'Playfair Display', serif; font-style: italic; line-height: 1.75; }
+  .surprise-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .surprise-box { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 0.85rem; }
+  .surprise-box-icon { font-size: 1.3rem; margin-bottom: 5px; }
+  .surprise-box-title { font-size: 0.78rem; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+  .surprise-box-body { font-size: 0.72rem; color: var(--muted); line-height: 1.5; }
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.88rem; color: #c5b8e0; line-height: 1.5; cursor: pointer; user-select: none; }
+  .checklist li .check { width: 18px; height: 18px; border-radius: 5px; border: 1px solid var(--border-hover); flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; transition: background 0.15s; }
+  .checklist li.done .check { background: var(--teal); border-color: var(--teal); color: #000; }
+  .checklist li.done span { text-decoration: line-through; color: var(--muted); }
+  .letter-box { background: rgba(192,132,252,0.05); border: 1px solid rgba(192,132,252,0.15); border-radius: 14px; padding: 1.3rem 1.4rem; font-family: 'Playfair Display', serif; font-size: 0.9rem; line-height: 1.85; color: #d4c5f0; font-style: italic; }
+  .letter-sign { margin-top: 1rem; text-align: right; font-style: normal; font-size: 0.82rem; color: var(--accent); }
+
+  /* MUSIC PLAYER */
+  .music-player {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 300;
+    background: rgba(10, 8, 18, 0.92);
+    border-top: 1px solid rgba(251,191,36,0.15);
+    backdrop-filter: blur(20px);
+    padding: 10px 20px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .mp-disc {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg, #1a1030, #2d1f50);
+    border: 1.5px solid var(--gold2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
+    transition: animation 0.3s;
+  }
+  .mp-disc.spinning { animation: spin 6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .mp-info { flex: 1; min-width: 0; }
+  .mp-title { font-size: 0.82rem; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mp-artist { font-size: 0.68rem; color: var(--muted); margin-top: 1px; }
+  .mp-progress-wrap { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .mp-progress { width: 100%; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; cursor: pointer; position: relative; }
+  .mp-progress-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--accent2)); border-radius: 2px; width: 0%; transition: width 0.5s linear; pointer-events: none; }
+  .mp-times { display: flex; justify-content: space-between; font-size: 0.6rem; color: var(--muted); }
+  .mp-controls { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .mp-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1rem; padding: 4px; transition: color 0.15s; line-height: 1; }
+  .mp-btn:hover { color: var(--text); }
+  .mp-btn.active { color: var(--gold); }
+  .mp-vol { width: 60px; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; cursor: pointer; position: relative; }
+  .mp-vol-fill { height: 100%; background: var(--gold); border-radius: 2px; width: 70%; pointer-events: none; }
+  @media (max-width: 500px) { .mp-progress-wrap { display: none; } .mp-vol { display: none; } }
+
+  /* CONFETTI */
+  .confetti-piece { position: fixed; pointer-events: none; z-index: 9999; width: 8px; height: 8px; border-radius: 2px; animation: confettiFall var(--dur) var(--delay) linear forwards; }
+  @keyframes confettiFall { 0% { transform: translate(var(--x), -20px) rotate(0deg); opacity: 1; } 100% { transform: translate(calc(var(--x) + var(--drift)), 100vh) rotate(var(--rot)); opacity: 0; } }
+
+  /* FOOTER */
+  .site-footer { position: relative; z-index: 1; text-align: center; padding: 2rem 2rem 2rem; color: var(--muted); font-size: 0.82rem; line-height: 1.8; }
+  .site-footer strong { color: var(--gold); font-weight: 500; }
+  .footer-heart { display: inline-block; animation: pulse 1.5s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.25); } }
+
+  .shooting-star { position: fixed; pointer-events: none; z-index: 0; width: 2px; height: 90px; background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.85)); border-radius: 2px; animation: shoot 1.2s linear forwards; }
+  @keyframes shoot { from { opacity: 1; transform: translateY(0) rotate(var(--angle)); } to { opacity: 0; transform: translateY(420px) rotate(var(--angle)); } }
+</style>
+</head>
+<body>
+<canvas id="starfield"></canvas>
+<div class="dev-banner" id="devBanner">🔧 DEV MODE — All days unlocked for preview · Add ?preview=all to URL</div>
+
+<section class="hero">
+  <p class="hero-eyebrow">May 9 — May 11 · For Gold, from Khush 🌌</p>
+  <h1 class="hero-title">3 Days for<br><em>Gold</em></h1>
+  <p class="hero-sub">Because Sonali means golden — and you've always been that to me.</p>
+  <p class="hero-sub2">"Only you." — J. Cole (and also me, very much)</p>
+  <div class="countdown-wrap" id="countdown"></div>
+</section>
+
+<section class="grid-section">
+  <p class="grid-label">One door opens each day</p>
+  <div class="grid" id="dayGrid"></div>
+</section>
+
+<footer class="site-footer">
+  <p>The universe is 13.8 billion years old.</p>
+  <p>But it only made <strong>Gold</strong> once. <span class="footer-heart">💛</span></p>
+  <p style="margin-top:0.5rem;font-size:0.72rem;opacity:0.45;">Made across the distance, with love — Khush · TWICE always playing softly somewhere</p>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="theModal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div class="modal-icon" id="mIcon"></div>
+    <div class="modal-eyebrow" id="mEyebrow"></div>
+    <div class="modal-title" id="mTitle"></div>
+    <div class="modal-date" id="mDate"></div>
+    <div class="modal-pills" id="mPills"></div>
+    <div id="mContent"></div>
+  </div>
+</div>
+
+<!-- MUSIC PLAYER -->
+<div class="music-player" id="musicPlayer">
+  <div class="mp-disc" id="mpDisc">🎵</div>
+  <div class="mp-info">
+    <div class="mp-title" id="mpTitle">Loading...</div>
+    <div class="mp-artist" id="mpArtist">For Gold 💛</div>
+  </div>
+  <div class="mp-progress-wrap">
+    <div class="mp-progress" id="mpProgress" onclick="seekAudio(event)">
+      <div class="mp-progress-fill" id="mpFill"></div>
+    </div>
+    <div class="mp-times">
+      <span id="mpCurrent">0:00</span>
+      <span id="mpDuration">0:00</span>
+    </div>
+  </div>
+  <div class="mp-controls">
+    <button class="mp-btn" onclick="prevTrack()" title="Previous">⏮</button>
+    <button class="mp-btn active" id="mpPlayBtn" onclick="togglePlay()" title="Play/Pause">▶</button>
+    <button class="mp-btn" onclick="nextTrack()" title="Next">⏭</button>
+    <div class="mp-vol" onclick="setVolume(event)" title="Volume">
+      <div class="mp-vol-fill" id="mpVolFill"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DEV MODE ───────────────────────────────────────────────
+const PREVIEW_ALL = new URLSearchParams(window.location.search).get('preview') === 'all';
+if (PREVIEW_ALL) document.getElementById('devBanner').classList.add('visible');
+
+// ─── DATES ───────────────────────────────────────────────────
+const START_DATE = new Date('2026-05-09T00:00:00');
+const BDAY_DATE  = new Date('2026-05-11T00:00:00');
+function getToday() { if (PREVIEW_ALL) return new Date('2026-05-11T00:00:00'); const d = new Date(); d.setHours(0,0,0,0); return d; }
+function dayDate(i) { const d = new Date(START_DATE); d.setDate(d.getDate() + i); d.setHours(0,0,0,0); return d; }
+function isUnlocked(i) { return getToday() >= dayDate(i); }
+function isToday(i) { if (PREVIEW_ALL) return false; return new Date(new Date().setHours(0,0,0,0)).getTime() === dayDate(i).getTime(); }
+function formatDate(d) { return d.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); }
+
+// ─── MUSIC PLAYER ────────────────────────────────────────────
+
+const isBirthdayToday = (() => { const d = new Date(); return d.getMonth() === 4 && d.getDate() === 11; })();
+
+const PLAYLIST_NORMAL = [
+  { title: "Only You",    artist: "J. Cole", file: "songs/only-you.mp3" },
+  { title: "Feel Special", artist: "TWICE",  file: "songs/feel-special.mp3" },
+  { title: "Cheer Up",    artist: "TWICE",   file: "songs/cheer-up.mp3" },
+  { title: "More & More", artist: "TWICE",   file: "songs/more-and-more.mp3" },
+];
+
+const PLAYLIST_BDAY = [
+  { title: "I Love Her Again (outro)", artist: "J. Cole", file: "songs/i-love-her-again.mp3" },
+  { title: "Only You",                 artist: "J. Cole", file: "songs/only-you.mp3" },
+  { title: "Feel Special",             artist: "TWICE",   file: "songs/feel-special.mp3" },
+  { title: "Cheer Up",                 artist: "TWICE",   file: "songs/cheer-up.mp3" },
+  { title: "More & More",              artist: "TWICE",   file: "songs/more-and-more.mp3" },
+];
+
+const PLAYLIST = (isBirthdayToday || PREVIEW_ALL) ? PLAYLIST_BDAY : PLAYLIST_NORMAL;
+
+let currentTrack = 0;
+let isPlaying = false;
+const audio = new Audio();
+audio.volume = 0.7;
+
+function loadTrack(index, autoplay = false) {
+  const t = PLAYLIST[index];
+  audio.src = t.file;
+  document.getElementById('mpTitle').textContent = t.title;
+  document.getElementById('mpArtist').textContent = t.artist + ' · For Gold 💛';
+  document.getElementById('mpFill').style.width = '0%';
+  document.getElementById('mpCurrent').textContent = '0:00';
+  document.getElementById('mpDuration').textContent = '0:00';
+  if (autoplay) { audio.play().catch(() => {}); isPlaying = true; updatePlayBtn(); }
+}
+
+function togglePlay() {
+  if (isPlaying) { audio.pause(); isPlaying = false; }
+  else { audio.play().catch(() => {}); isPlaying = true; }
+  updatePlayBtn();
+}
+
+function updatePlayBtn() {
+  document.getElementById('mpPlayBtn').textContent = isPlaying ? '⏸' : '▶';
+  document.getElementById('mpDisc').classList.toggle('spinning', isPlaying);
+}
+
+function nextTrack() { currentTrack = (currentTrack + 1) % PLAYLIST.length; loadTrack(currentTrack, isPlaying); }
+function prevTrack() { currentTrack = (currentTrack - 1 + PLAYLIST.length) % PLAYLIST.length; loadTrack(currentTrack, isPlaying); }
+
+audio.addEventListener('ended', () => { nextTrack(); audio.play().catch(() => {}); isPlaying = true; updatePlayBtn(); });
+
+audio.addEventListener('timeupdate', () => {
+  if (!audio.duration) return;
+  const pct = (audio.currentTime / audio.duration) * 100;
+  document.getElementById('mpFill').style.width = pct + '%';
+  document.getElementById('mpCurrent').textContent = fmtTime(audio.currentTime);
+  document.getElementById('mpDuration').textContent = fmtTime(audio.duration);
+});
+
+function fmtTime(s) {
+  if (!s || isNaN(s)) return '0:00';
+  const m = Math.floor(s / 60), sec = Math.floor(s % 60);
+  return m + ':' + String(sec).padStart(2, '0');
+}
+
+function seekAudio(e) {
+  const rect = document.getElementById('mpProgress').getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  audio.currentTime = pct * audio.duration;
+}
+
+function setVolume(e) {
+  const rect = document.querySelector('.mp-vol').getBoundingClientRect();
+  const vol = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  audio.volume = vol;
+  document.getElementById('mpVolFill').style.width = (vol * 100) + '%';
+}
+
+// Autoplay on first user interaction
+let autoplayArmed = true;
+document.addEventListener('click', function startAudio() {
+  if (autoplayArmed) { audio.play().catch(() => {}); isPlaying = true; updatePlayBtn(); autoplayArmed = false; }
+}, { once: true });
+
+loadTrack(0);
+
+// ─── DAY DATA ─────────────────────────────────────────────────
+const days = [
+  {
+    icon: '☕', eyebrow: 'Day 1 · May 9', title: 'The Café Date',
+    tagline: 'You, me, a table for two — just not the same city. Not yet.',
+    pills: [{label:'Long Distance',cls:'teal'},{label:'Date Night',cls:'pink'},{label:'Heartfelt',cls:'gold'}],
+    isBirthday: false,
+    content: `
+      <div class="modal-section">
+        <div class="modal-section-title">The Plan</div>
+        <div class="modal-body">Tonight we go on a date. You pick your favourite drink — chai, coffee, whatever — and I'll have mine. We video call. No agenda. No timers. Just us at our own little table for two, talking until one of us falls asleep mid-sentence (probably me).</div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">Surprises for today</div>
+        <div class="surprise-grid">
+          <div class="surprise-box"><div class="surprise-box-icon">🎧</div><div class="surprise-box-title">Sync-listen</div><div class="surprise-box-body">We put on "Only You" at exactly the same time. Different cities, same song, same second.</div></div>
+          <div class="surprise-box"><div class="surprise-box-icon">📝</div><div class="surprise-box-title">21 Questions</div><div class="surprise-box-body">I have 21 questions I've never asked you. Tonight I'm asking all of them. Your job: answer honestly.</div></div>
+          <div class="surprise-box"><div class="surprise-box-icon">🌃</div><div class="surprise-box-title">Show me your sky</div><div class="surprise-box-body">At 9PM — point your camera at your sky. I'll point mine at mine. Two skies, one moment.</div></div>
+          <div class="surprise-box"><div class="surprise-box-icon">🎤</div><div class="surprise-box-title">TWICE karaoke</div><div class="surprise-box-body">One TWICE song. Both of us. On call. Badly. Non-negotiable. You pick which one.</div></div>
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">From Khush</div>
+        <div class="modal-note">"Distance is just a number. Tonight we're at the same table — I'm absolutely certain of it."</div>
+      </div>`
+  },
+  {
+    icon: '🌠', eyebrow: 'Day 2 · May 10', title: 'The Night Before',
+    tagline: 'Tomorrow you turn another year older. Tonight we make it count.',
+    pills: [{label:'Astrophysics',cls:''},{label:'K-pop',cls:'pink'},{label:'Magic',cls:'gold'}],
+    isBirthday: false,
+    content: `
+      <div class="modal-section">
+        <div class="modal-section-title">Your letter</div>
+        <div class="letter-box">
+          Gold,<br><br>
+          You know what's funny about light? It travels 299,792 kilometres every single second — and it still takes 8 minutes to reach us from the sun. Distance doesn't erase the source. It just means you wait, and then it arrives, and it's warm.<br><br>
+          That's what this has been. Every call, every "good morning" at weird hours, every voice note — all of it travelling across whatever gap sits between us, arriving warm.<br><br>
+          Tomorrow you turn another year older. The universe spent 13.8 billion years getting ready for you. I think it did a good job.<br><br>
+          I'm so glad you exist, Sonali. I'm so glad I got left behind that day.
+          <div class="letter-sign">— Khush, the night before your birthday</div>
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">Tonight's ritual</div>
+        <ul class="checklist">
+          <li onclick="toggleCheck(this)"><div class="check">✓</div><span>Put on your favourite TWICE album, full volume</span></li>
+          <li onclick="toggleCheck(this)"><div class="check">✓</div><span>Read this letter again, slowly</span></li>
+          <li onclick="toggleCheck(this)"><div class="check">✓</div><span>Look up Eta Aquariids — Halley's Comet meteors peak this week</span></li>
+          <li onclick="toggleCheck(this)"><div class="check">✓</div><span>Make exactly one wish. Don't tell me what it is yet.</span></li>
+          <li onclick="toggleCheck(this)"><div class="check">✓</div><span>Text me "ready" when you're actually ready for tomorrow</span></li>
+        </ul>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">Midnight surprise</div>
+        <div class="surprise-grid">
+          <div class="surprise-box"><div class="surprise-box-icon">🎤</div><div class="surprise-box-title">TWICE countdown</div><div class="surprise-box-body">We're watching the "Feel Special" MV together at midnight. Synchronised. No excuses.</div></div>
+          <div class="surprise-box"><div class="surprise-box-icon">🪐</div><div class="surprise-box-title">Your star</div><div class="surprise-box-body">There's a star in Cassiopeia I've decided is called Sonali. It's golden. Obviously.</div></div>
+          <div class="surprise-box"><div class="surprise-box-icon">🎵</div><div class="surprise-box-title">Hunger on Hillside</div><div class="surprise-box-body">Listen to the outro of Hunger on Hillside tonight. It's for you. It's always been for you.</div></div>
+          <div class="surprise-box"><div class="surprise-box-icon">💌</div><div class="surprise-box-title">Voice note</div><div class="surprise-box-body">Send me one voice note of you saying something you've never said out loud. I'll send mine too.</div></div>
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">From Khush</div>
+        <div class="modal-note">"The night before something wonderful is its own kind of magic. Sleep well, Gold. Tomorrow's yours."</div>
+      </div>`
+  },
+  {
+    icon: '🎂', eyebrow: 'Day 3 · May 11', title: 'Happy Birthday, Gold',
+    tagline: 'The universe saved its best work for this one.',
+    pills: [{label:'Birthday',cls:'gold'},{label:'You',cls:'pink'},{label:'Everything',cls:'teal'}],
+    isBirthday: true,
+    content: `
+      <div class="modal-section">
+        <div class="modal-section-title">For you, today</div>
+        <div class="letter-box">
+          Happy birthday, Sonali.<br><br>
+          Sonali — from Sanskrit, meaning golden. And you are, you know. Not in the cliché way. In the way that gold doesn't tarnish. In the way that gold shows up differently in every kind of light, and it's always beautiful. In the way that people have crossed oceans for it.<br><br>
+          I got left behind at school for a competition I didn't even care about, and somehow that became the start of the best thing in my life. The universe is weird like that. Astrophysics would call it improbable. I call it lucky.<br><br>
+          Today, 13.8 billion years of cosmic chaos arrived at exactly one point: you. TWICE is playing. The stars know your name. And somewhere across the distance, I'm celebrating you with everything I've got.<br><br>
+          Only you, Gold. Always.
+          <div class="letter-sign">— Khush 💛</div>
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">Your birthday surprises</div>
+        <div class="surprise-grid">
+          <div class="surprise-box"><div class="surprise-box-icon">🎁</div><div class="surprise-box-title">A package</div><div class="surprise-box-body">Check your messages. I left something for you to find today — it's been waiting.</div></div>
+          <div class="surprise-box"><div class="surprise-box-icon">🎵</div><div class="surprise-box-title">Only You</div><div class="surprise-box-body">Our song. It's playing on this site right now. I'm listening at the exact same time. We're together.</div></div>
+          <div class="surprise-box"><div class="surprise-box-icon">📸</div><div class="surprise-box-title">Photo dump</div><div class="surprise-box-body">I'm sending you a photo dump — every picture I love of us. Check your phone right now.</div></div>
+          <div class="surprise-box"><div class="surprise-box-icon">🔭</div><div class="surprise-box-title">The Annual Day</div><div class="surprise-box-body">Remember the Annual Day? I kept that memory like a photograph. Ask me about it tonight.</div></div>
+          <div class="surprise-box"><div class="surprise-box-icon">🎤</div><div class="surprise-box-title">TWICE night</div><div class="surprise-box-body">Tonight we watch a TWICE concert together. You pick the era. I'll try to know the words.</div></div>
+          <div class="surprise-box"><div class="surprise-box-icon">💌</div><div class="surprise-box-title">11 things</div><div class="surprise-box-body">11 things I want to do with you in person, before we leave this galaxy. Ask me tonight.</div></div>
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">Birthday checklist</div>
+        <ul class="checklist">
+          <li onclick="toggleCheck(this)"><div class="check">✓</div><span>Wake up and read this first</span></li>
+          <li onclick="toggleCheck(this)"><div class="check">✓</div><span>Eat something you actually love today</span></li>
+          <li onclick="toggleCheck(this)"><div class="check">✓</div><span>Put on TWICE. Loud. No shame.</span></li>
+          <li onclick="toggleCheck(this)"><div class="check">✓</div><span>Look at the sky at some point — say hi to your star in Cassiopeia</span></li>
+          <li onclick="toggleCheck(this)"><div class="check">✓</div><span>Listen to "I Love Her Again" outro and pretend I didn't write this for you</span></li>
+          <li onclick="toggleCheck(this)"><div class="check">✓</div><span>Call me. We're celebrating. Together.</span></li>
+        </ul>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">The only thing I need you to know</div>
+        <div class="modal-note">"Sonali means golden. And you have always, always been that — to the universe, to physics, to TWICE stans everywhere, and most of all to me. Happy birthday, Gold. 💛"</div>
+      </div>`
+  }
+];
+
+const DATES = ['May 9', 'May 10', 'May 11'];
+
+// ─── BUILD GRID ───────────────────────────────────────────────
+const grid = document.getElementById('dayGrid');
+days.forEach((day, i) => {
+  const unlocked = isUnlocked(i);
+  const today = isToday(i);
+  const card = document.createElement('div');
+  card.className = 'day-card' + (unlocked ? '' : ' locked') + (today ? ' is-today' : '') + (day.isBirthday ? ' is-birthday' : '');
+  let badge = '';
+  if (today && !day.isBirthday) badge = '<span class="card-badge badge-today">Today</span>';
+  if (day.isBirthday) badge = '<span class="card-badge badge-bday">🎂 Birthday</span>';
+  const pillsHTML = day.pills.map(p => `<span class="pill ${p.cls}">${p.label}</span>`).join('');
+  card.innerHTML = unlocked ? `
+    ${badge}
+    <div class="card-date">${DATES[i]}</div>
+    <div class="card-icon">${day.icon}</div>
+    <div class="card-title">${day.title}</div>
+    <div class="card-tagline">${day.tagline}</div>
+    <div class="card-pills">${pillsHTML}</div>
+  ` : `
+    <div class="card-date">${DATES[i]}</div>
+    <div class="lock-icon">🔒</div>
+    <div class="card-tagline" style="margin-top:8px">A surprise is waiting...</div>
+    <div class="unlock-date">Opens ${DATES[i]}</div>
+  `;
+  if (unlocked) card.addEventListener('click', () => openModal(i));
+  grid.appendChild(card);
+});
+
+// ─── MODAL ────────────────────────────────────────────────────
+function openModal(i) {
+  const d = days[i];
+  document.getElementById('mIcon').textContent = d.icon;
+  document.getElementById('mEyebrow').textContent = d.eyebrow;
+  document.getElementById('mTitle').textContent = d.title;
+  document.getElementById('mDate').textContent = formatDate(dayDate(i));
+  document.getElementById('mPills').innerHTML = d.pills.map(p => `<span class="pill ${p.cls}">${p.label}</span>`).join('');
+  document.getElementById('mContent').innerHTML = d.content;
+  const modal = document.getElementById('theModal');
+  if (d.isBirthday) { modal.classList.add('birthday-modal'); launchConfetti(); }
+  else modal.classList.remove('birthday-modal');
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('modalOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+});
+function toggleCheck(li) { li.classList.toggle('done'); }
+
+// ─── COUNTDOWN ────────────────────────────────────────────────
+function updateCountdown() {
+  const now = new Date(); now.setHours(0,0,0,0);
+  const diff = BDAY_DATE - now;
+  const daysLeft = Math.max(0, Math.floor(diff / 86400000));
+  const el = document.getElementById('countdown');
+  if (daysLeft === 0) {
+    el.innerHTML = `<div class="cdown-box"><span class="cdown-num" style="color:var(--gold)">🎂</span><span class="cdown-label">Today!</span></div>`;
+  } else {
+    el.innerHTML = `<div class="cdown-box"><span class="cdown-num">${daysLeft}</span><span class="cdown-label">days to go</span></div><div class="cdown-box"><span class="cdown-num" style="font-size:1.2rem">May 11</span><span class="cdown-label">Birthday</span></div>`;
+  }
+}
+updateCountdown();
+
+// ─── CONFETTI ─────────────────────────────────────────────────
+function launchConfetti() {
+  const colors = ['#fbbf24','#f472b6','#c084fc','#2dd4bf','#fff'];
+  for (let i = 0; i < 80; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.setProperty('--x', (Math.random() * 100) + 'vw');
+    el.style.setProperty('--drift', (Math.random() * 100 - 50) + 'px');
+    el.style.setProperty('--rot', (Math.random() * 720) + 'deg');
+    el.style.setProperty('--dur', (1.5 + Math.random() * 2.5) + 's');
+    el.style.setProperty('--delay', (Math.random() * 0.8) + 's');
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 4500);
+  }
+}
+
+// ─── STARFIELD ────────────────────────────────────────────────
+(function() {
+  const canvas = document.getElementById('starfield');
+  const ctx = canvas.getContext('2d');
+  const stars = [];
+  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  for (let i = 0; i < 260; i++) stars.push({ x: Math.random(), y: Math.random(), r: Math.random() * 1.5 + 0.2, speed: Math.random() * 0.006 + 0.002, phase: Math.random() * Math.PI * 2 });
+  let t = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    t += 0.012;
+    stars.forEach(s => {
+      const op = 0.12 + 0.58 * (0.5 + 0.5 * Math.sin(t * s.speed * 60 + s.phase));
+      ctx.beginPath();
+      ctx.arc(s.x * canvas.width, s.y * canvas.height, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${op})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+  function shootingStar() {
+    const el = document.createElement('div');
+    el.className = 'shooting-star';
+    el.style.setProperty('--angle', (25 + Math.random() * 25) + 'deg');
+    el.style.left = (5 + Math.random() * 85) + '%';
+    el.style.top = (2 + Math.random() * 25) + '%';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1400);
+    setTimeout(shootingStar, 3500 + Math.random() * 5000);
+  }
+  setTimeout(shootingStar, 1800);
+})();
+</script>
+</body>
+</html>
