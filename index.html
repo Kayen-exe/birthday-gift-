@@ -222,7 +222,9 @@ function isToday(i) { if (PREVIEW_ALL) return false; return new Date(new Date().
 function formatDate(d) { return d.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); }
 
 // ─── MUSIC PLAYER ────────────────────────────────────────────
-
+// INSTRUCTIONS: Put your MP3 files in a folder called "songs/" next to this HTML file.
+// File names must match exactly (case-sensitive on GitHub Pages):
+// "I Love Her Again" only plays on May 11 (her birthday). No hunger-on-hillside needed.
 const isBirthdayToday = (() => { const d = new Date(); return d.getMonth() === 4 && d.getDate() === 11; })();
 
 const PLAYLIST_NORMAL = [
@@ -301,13 +303,41 @@ function setVolume(e) {
   document.getElementById('mpVolFill').style.width = (vol * 100) + '%';
 }
 
-// Autoplay on first user interaction
-let autoplayArmed = true;
-document.addEventListener('click', function startAudio() {
-  if (autoplayArmed) { audio.play().catch(() => {}); isPlaying = true; updatePlayBtn(); autoplayArmed = false; }
-}, { once: true });
-
+// ─── AUTOPLAY ────────────────────────────────────────────────
+// Browsers require a user gesture before playing audio.
+// We show a tap-to-start overlay until she clicks anywhere.
 loadTrack(0);
+
+const tapOverlay = document.createElement('div');
+tapOverlay.id = 'tapOverlay';
+tapOverlay.style.cssText = `
+  position: fixed; inset: 0; z-index: 400;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: rgba(10,8,18,0.92); backdrop-filter: blur(16px);
+  cursor: pointer; text-align: center; padding: 2rem;
+`;
+tapOverlay.innerHTML = `
+  <div style="font-size:3rem;margin-bottom:1rem;animation:pulse 1.5s ease-in-out infinite">💛</div>
+  <div style="font-family:'Playfair Display',serif;font-size:1.6rem;color:#f0eaf8;margin-bottom:0.5rem">For Gold</div>
+  <div style="font-size:0.85rem;color:#8878aa;margin-bottom:2rem">From Khush, with love 🌌</div>
+  <div style="font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:#fbbf24;border:1px solid rgba(251,191,36,0.3);padding:10px 24px;border-radius:100px;">
+    Tap anywhere to begin ✨
+  </div>
+`;
+document.body.appendChild(tapOverlay);
+
+tapOverlay.addEventListener('click', () => {
+  tapOverlay.style.opacity = '0';
+  tapOverlay.style.transition = 'opacity 0.4s';
+  setTimeout(() => tapOverlay.remove(), 400);
+  audio.play().then(() => {
+    isPlaying = true;
+    updatePlayBtn();
+  }).catch(err => {
+    console.warn('Audio play failed:', err);
+  });
+}, { once: true });
 
 // ─── DAY DATA ─────────────────────────────────────────────────
 const days = [
@@ -318,21 +348,24 @@ const days = [
     isBirthday: false,
     content: `
       <div class="modal-section">
-        <div class="modal-section-title">The Plan</div>
-        <div class="modal-body">Tonight we go on a date. You pick your favourite drink — chai, coffee, whatever — and I'll have mine. We video call. No agenda. No timers. Just us at our own little table for two, talking until one of us falls asleep mid-sentence (probably me).</div>
-      </div>
-      <div class="modal-section">
-        <div class="modal-section-title">Surprises for today</div>
-        <div class="surprise-grid">
-          <div class="surprise-box"><div class="surprise-box-icon">🎧</div><div class="surprise-box-title">Sync-listen</div><div class="surprise-box-body">We put on "Only You" at exactly the same time. Different cities, same song, same second.</div></div>
-          <div class="surprise-box"><div class="surprise-box-icon">📝</div><div class="surprise-box-title">21 Questions</div><div class="surprise-box-body">I have 21 questions I've never asked you. Tonight I'm asking all of them. Your job: answer honestly.</div></div>
-          <div class="surprise-box"><div class="surprise-box-icon">🌃</div><div class="surprise-box-title">Show me your sky</div><div class="surprise-box-body">At 9PM — point your camera at your sky. I'll point mine at mine. Two skies, one moment.</div></div>
-          <div class="surprise-box"><div class="surprise-box-icon">🎤</div><div class="surprise-box-title">TWICE karaoke</div><div class="surprise-box-body">One TWICE song. Both of us. On call. Badly. Non-negotiable. You pick which one.</div></div>
+        <div class="modal-section-title">For you, whenever you find a moment today</div>
+        <div class="letter-box">
+          Gold,<br><br>
+          I know today is busy. I know you're running around, probably doing seventeen things at once, probably not stopping to breathe. That's okay. This will be here whenever you find a quiet minute — on a break, between things, right before you sleep.<br><br>
+          I've been thinking about how we work, you and I. We exist in stolen moments. A voice note sent between classes. A "thinking of you" at an odd hour. A call that starts at 11pm and ends somewhere around 2am with neither of us remembering who was supposed to hang up first.<br><br>
+          And somehow that's enough. Somehow those small stolen things add up to something I wouldn't trade for anything.<br><br>
+          Two more days, and it's your birthday. The universe has been building to this for a while — I'm just glad I get a front row seat.<br><br>
+          Go finish your day. I'll be here.
+          <div class="letter-sign">— Khush, somewhere across the distance 💛</div>
         </div>
       </div>
       <div class="modal-section">
+        <div class="modal-section-title">One tiny thing for today</div>
+        <div class="modal-body">Whenever you get 30 seconds — put in your earphones, press play on this site, and just breathe for one song. That's it. That's the whole plan for today. You've earned it.</div>
+      </div>
+      <div class="modal-section">
         <div class="modal-section-title">From Khush</div>
-        <div class="modal-note">"Distance is just a number. Tonight we're at the same table — I'm absolutely certain of it."</div>
+        <div class="modal-note">"Busy days are just proof that you're out there living. I like knowing you're out there."</div>
       </div>`
   },
   {
