@@ -165,7 +165,7 @@
 <footer class="site-footer">
   <p>The universe is 13.8 billion years old.</p>
   <p>But it only made <strong>Gold</strong> once. <span class="footer-heart">💛</span></p>
-  <p style="margin-top:0.5rem;font-size:0.72rem;opacity:0.45;">Made across the distance, with love — Khush · TWICE always playing softly somewhere</p>
+  <p style="margin-top:0.5rem;font-size:0.72rem;opacity:0.45;">Made across the distance, with love — Khush </p>
 </footer>
 
 <!-- MODAL -->
@@ -221,10 +221,7 @@ function isUnlocked(i) { return getToday() >= dayDate(i); }
 function isToday(i) { if (PREVIEW_ALL) return false; return new Date(new Date().setHours(0,0,0,0)).getTime() === dayDate(i).getTime(); }
 function formatDate(d) { return d.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); }
 
-// ─── MUSIC PLAYER ────────────────────────────────────────────
-// INSTRUCTIONS: Put your MP3 files in a folder called "songs/" next to this HTML file.
-// File names must match exactly (case-sensitive on GitHub Pages):
-// "I Love Her Again" only plays on May 11 (her birthday). No hunger-on-hillside needed.
+
 const isBirthdayToday = (() => { const d = new Date(); return d.getMonth() === 4 && d.getDate() === 11; })();
 
 const PLAYLIST_NORMAL = [
@@ -342,7 +339,7 @@ tapOverlay.addEventListener('click', () => {
 // ─── DAY DATA ─────────────────────────────────────────────────
 const days = [
   {
-    icon: '☕', eyebrow: 'Day 1 · May 9', title: 'The Average Day',
+    icon: '📒', eyebrow: 'Day 1 · May 9', title: 'The Average Day',
     tagline: 'What feels like an average day made special. by YOU',
     pills: [{label:'Long Distance',cls:'teal'},{label:'Heartfelt',cls:'gold'}],
     isBirthday: false,
@@ -425,11 +422,7 @@ const days = [
           Only you, Gold. Always.
           <div class="letter-sign">— Khush 💛</div>
         </div>
-      </div>
-      <div class="modal-section">
-        <div class="modal-section-title">Your birthday surprises</div>
-        <div class="surprise-grid">
-        </div>
+  
       </div>
       <div class="modal-section">
         <div class="modal-section-title">Birthday checklist</div>
