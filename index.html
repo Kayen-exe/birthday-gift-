@@ -541,6 +541,30 @@ function launchConfetti() {
   }
   setTimeout(shootingStar, 1800);
 })();
+  (function() {
+  const now = new Date();
+  const isMay10 = now.getMonth() === 4 && now.getDate() === 10;
+  const before6pm = now.getHours() < 18;
+
+  if (isMay10 && before6pm && !PREVIEW_ALL) {
+    const cards = document.querySelectorAll('.day-card');
+    const card = cards[1]; // May 10 is the 2nd card (index 1)
+    card.classList.add('locked');
+    card.classList.remove('is-today');
+    card.style.opacity = '0.38';
+    card.style.cursor = 'default';
+    card.replaceWith(card.cloneNode(true)); // removes click listener
+
+    // re-grab and update the content
+    const newCard = document.querySelectorAll('.day-card')[1];
+    newCard.innerHTML = `
+      <div class="card-date">May 10</div>
+      <div class="lock-icon">🔒</div>
+      <div class="card-tagline" style="margin-top:8px">Opens later today...</div>
+      <div class="unlock-date">Come back at 7 💛</div>
+    `;
+  }
+})();
 </script>
 </body>
 </html>
